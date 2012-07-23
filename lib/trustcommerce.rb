@@ -1,3 +1,5 @@
+require "trustcommerce/version"
+
 require 'net/http'
 require 'net/https'
 require 'uri'

@@ -1,4 +1,5 @@
 require "trustcommerce/version"
+require "trustee_merchant_host"
 
 require 'net/http'
 require 'net/https'

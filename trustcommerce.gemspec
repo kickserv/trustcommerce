@@ -5,8 +5,8 @@ require "trustcommerce/version"
 Gem::Specification.new do |s|
   s.name        = "trustcommerce"
   s.version     = Trustcommerce::VERSION
-  s.authors     = ["zackchandler@depixelate.com"]
-  s.email       = ["brian@hwrd.com"]
+  s.authors     = ["Zack Chandler"]
+  s.email       = ["zackchandler@depixelate.com"]
   s.homepage    = 'http://trustcommerce.rubyforge.org'
   s.summary     = 'TrustCommerce Subscription Library'
   s.description = s.summary

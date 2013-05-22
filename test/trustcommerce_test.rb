@@ -1,4 +1,5 @@
 require File.expand_path("../test_helper", __FILE__)
+require 'csv'
 
 # The following special environment variables must be set up prior to running tests:
 #
@@ -13,6 +14,7 @@ require File.expand_path("../test_helper", __FILE__)
 # Run tests via ruby:
 #
 #     $ ruby test/trustcommerce_test.rb
+
 class TrustCommerceSubscriptionTest < Test::Unit::TestCase
 
   def setup
@@ -109,7 +111,7 @@ class TrustCommerceSubscriptionTest < Test::Unit::TestCase
     puts "Make sure TC_VAULT_PASSWORD is set if it differs from your TCLink password."
     puts "---------------------------------------------------------------------------"
 
-    # create subscription
+    puts 'Posting test transaction...'
     billing_id = create_subscription!('query() test')
 
     # query for charges
@@ -136,6 +138,42 @@ class TrustCommerceSubscriptionTest < Test::Unit::TestCase
         break
       end
     end
+  end
+
+def test_subscription_summary
+    # puts "\n"
+    # puts "---------------------------------------------------------------------------"
+    # puts "IMPORTANT: This query test will likely take between 1 and 2 minutes!"
+    # puts "Make sure TC_VAULT_PASSWORD is set if it differs from your TCLink password."
+    # puts "---------------------------------------------------------------------------"
+
+    billing_id = create_subscription!('query() test')
+    
+    puts 'Posting test transaction...'
+
+    charge_response = TrustCommerce::Subscription.charge(
+      :billingid  => billing_id,
+      :amount     => 1995,
+      :demo       => 'y'
+    )
+
+    # query for charges
+    options = { :querytype => 'summary', :billingid => billing_id }
+
+    while (query_response = TrustCommerce::Subscription.query(options))
+      if query_response.body =~ /error/i
+        fail(query_response.body)
+        break
+      elsif query_response.body.split("\n").size < 2
+        puts 'Transaction has not yet showed up... will try again in 15 seconds.'
+        sleep(15)
+      else
+        puts 'Transaction found.'
+        break
+      end
+    end
+
+    assert_equal "1995", TrustCommerce::Subscription.summary(billing_id)[:sum]
   end
 
   # test private helpers

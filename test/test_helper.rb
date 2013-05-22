@@ -3,7 +3,7 @@ require 'rubygems'
 require File.dirname(__FILE__) + '/../lib/trustcommerce'
 
 begin
-  require 'mocha'
+  require 'mocha/setup'
 rescue LoadError
   puts "Mocha required to run tests. `gem install mocha` and try again."
   exit 1

@@ -4,6 +4,7 @@ require "trustee_merchant_host"
 require 'net/http'
 require 'net/https'
 require 'uri'
+require 'csv'
 
 # [TrustCommerce](http://www.trustcommerce.com) is a payment gateway providing credit card
 # processing and recurring / subscription billing services.
@@ -149,6 +150,14 @@ class TrustCommerce
       return TrustCommerce.send_request(options.merge(:action => 'credit'))
     end
 
+    #     # Get summary info for a billing ID in hash format
+    #     result = TrustCommerce::Subscription.summary('ABC123')
+    def self.summary(billing_id)
+      response = TrustCommerce.send_query :querytype => 'summary', :billingid => billing_id
+      TrustCommerce.csv_to_hash_array(response.body).first
+    end
+
+
     #     # Get all sale transactions for a subscription in CSV format
     #     response = TrustCommerce::Subscription.query(
     #       :querytype => 'transaction',
@@ -238,4 +247,9 @@ class TrustCommerce
       http.request(request)
     end
 
+    def self.csv_to_hash_array(csv)
+      csv = CSV.parse csv
+      keys = csv.pop
+      csv.map { |row| TrustCommerce.symbolize_hash(Hash[ row.zip(keys) ]) }
+    end
 end

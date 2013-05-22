@@ -1,3 +1,6 @@
+require "trustcommerce/version"
+require "trustee_merchant_host"
+
 require 'net/http'
 require 'net/https'
 require 'uri'
@@ -51,8 +54,8 @@ require 'uri'
 # extension.  However if you choose to use SSL over HTTP instead (the fallback option if the TCLink
 # library is not installed), be aware that you need to set the password to your Vault password.
 # Likewise, if your application uses the query() method you must set the vault_password.
-# The reason is that TrustCommerce currently routes these query() calls through the vault 
-# and therefore your password must be set accordingly.  To make matters more complicated, 
+# The reason is that TrustCommerce currently routes these query() calls through the vault
+# and therefore your password must be set accordingly.  To make matters more complicated,
 # TrustCommerce currently forces you to change the Vault password every 90 days.
 class TrustCommerce
 
@@ -60,24 +63,24 @@ class TrustCommerce
     attr_accessor :custid
     attr_accessor :password
     attr_accessor :vault_password
-    
+
     # Returns Vault password.
     def vault_password
       @vault_password || password
-    end    
+    end
   end
   self.custid   = 'TestMerchant'
   self.password = 'password'
-  
-  # Settings for standard POST over SSL 
+
+  # Settings for standard POST over SSL
   # Only used if TCLink library is not installed
-  API_SETTINGS = { 
+  API_SETTINGS = {
     :domain => 'vault.trustcommerce.com',
-    :query_path => '/query/', 
-    :trans_path => '/trans/', 
-    :port => 443  
+    :query_path => '/query/',
+    :trans_path => '/trans/',
+    :port => 443
   }
-  
+
   class Subscription
 
     #     # Bill Jennifer $12.00 monthly
@@ -88,7 +91,7 @@ class TrustCommerce
     #       :amount => 1200,
     #       :cycle  => '1m'
     #     )
-    #     
+    #
     #     if response['status'] == 'approved'
     #       puts "Subscription created with Billing ID: #{response['billingid']}"
     #     else
@@ -97,14 +100,14 @@ class TrustCommerce
     def self.create(options)
       return TrustCommerce.send_request(options.merge(:action => 'store'))
     end
-    
+
     #     # Update subscription to use new credit card
     #     response = TrustCommerce::Subscription.update(
     #       :billingid => 'ABC123',
-    #       :cc        => '5411111111111115', 
+    #       :cc        => '5411111111111115',
     #       :exp       => '0412'
     #     )
-    #     
+    #
     #     if response['status'] == 'accepted'
     #       puts 'Subscription updated.'
     #     else
@@ -112,13 +115,13 @@ class TrustCommerce
     #     end
     def self.update(options)
       return TrustCommerce.send_request(options.merge(:action => 'store'))
-    end    
-    
+    end
+
     #     # Delete subscription
     #     response = TrustCommerce::Subscription.delete(
     #       :billingid => 'ABC123'
     #     )
-    #     
+    #
     #     if response['status'] == 'accepted'
     #       puts 'Subscription removed from active use.'
     #     else
@@ -127,7 +130,7 @@ class TrustCommerce
     def self.delete(options)
       return TrustCommerce.send_request(options.merge(:action => 'unstore'))
     end
-    
+
     #     # Process one-time sale against existing subscription
     #     response = TrustCommerce::Subscription.charge(
     #       :billingid => 'ABC123',
@@ -136,7 +139,7 @@ class TrustCommerce
     def self.charge(options)
       return TrustCommerce.send_request(options.merge(:action => 'sale'))
     end
-    
+
     #     # Process one-time credit against existing transaction
     #     response = TrustCommerce::Subscription.credit(
     #       :transid => '001-0000111101',
@@ -145,7 +148,7 @@ class TrustCommerce
     def self.credit(options)
       return TrustCommerce.send_request(options.merge(:action => 'credit'))
     end
-    
+
     #     # Get all sale transactions for a subscription in CSV format
     #     response = TrustCommerce::Subscription.query(
     #       :querytype => 'transaction',
@@ -154,12 +157,12 @@ class TrustCommerce
     #     )
     def self.query(options)
       return TrustCommerce.send_query(options)
-    end    
-    
+    end
+
   end
-  
+
   class Result < Hash
-    
+
     def initialize(constructor = {})
       if constructor.is_a?(Hash)
         super()
@@ -168,15 +171,15 @@ class TrustCommerce
         super(constructor)
       end
     end
-    
+
     %w(approved accepted decline baddata error).each do |status|
       define_method("#{status}?") do
         self[:status] == status
       end
     end
-    
+
   end
-  
+
   # It is highly recommended to download and install the
   # [TCLink ruby extension](http://www.trustcommerce.com/tclink.php).
   # This extension provides failover capability and enhanced security features.
@@ -189,9 +192,9 @@ class TrustCommerce
       false
     end
   end
-  
+
   private
-  
+
     def self.stringify_hash(hash)
       hash.inject({}) { |h,(k,v)| h[k.to_s] = v.to_s; h }
     end
@@ -199,7 +202,7 @@ class TrustCommerce
     def self.symbolize_hash(hash)
       hash.inject({}) { |h,(k,v)| h[k.to_sym] = v.to_s; h }
     end
-    
+
     def self.send_request(options)
       options[:custid]   = self.custid
       options[:password] = self.password
@@ -208,9 +211,8 @@ class TrustCommerce
       if tclink? # use TCLink extension if installed
         return Result.new(symbolize_hash(TCLink.send(parameters)))
       else # TCLink library not installed - use https post
-        parameters[:password] = self.vault_password.to_s
         response = send_https_request(API_SETTINGS[:trans_path], parameters)
-        
+
         # parse response
         results = Result.new
         response.body.split("\n").each do |line|
@@ -220,13 +222,13 @@ class TrustCommerce
         results
       end
     end
-    
+
     def self.send_query(options)
       options[:custid]   = self.custid
       options[:password] = self.vault_password.to_s
       response = send_https_request(API_SETTINGS[:query_path], stringify_hash(options))
     end
-    
+
     def self.send_https_request(path, parameters)
       http = Net::HTTP.new(API_SETTINGS[:domain], API_SETTINGS[:port])
       http.use_ssl = true

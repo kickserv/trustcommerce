@@ -2,5 +2,8 @@
 .bundle
 Gemfile.lock
 pkg/*
+<<<<<<< HEAD
 local_env_vars.sh
 
+=======
+>>>>>>> hwrd/master

@@ -154,9 +154,15 @@ class TrustCommerce
     #     result = TrustCommerce::Subscription.summary('ABC123')
     def self.summary(billing_id)
       response = TrustCommerce.send_query :querytype => 'summary', :billingid => billing_id
-      TrustCommerce.csv_to_hash_array(response.body).first
+      TrustCommerce.csv_to_hash_array(response.body)
     end
 
+    #     # Get report info for a billing ID in hash format
+    #     result = TrustCommerce::Subscription.report('ABC123')
+    def self.report(billing_id)
+      response = TrustCommerce.send_query :querytype => 'billingid', :billingid => billing_id
+      TrustCommerce.csv_to_hash_array(response.body).first
+    end
 
     #     # Get all sale transactions for a subscription in CSV format
     #     response = TrustCommerce::Subscription.query(
@@ -249,7 +255,7 @@ class TrustCommerce
 
     def self.csv_to_hash_array(csv)
       csv = CSV.parse csv
-      keys = csv.pop
-      csv.map { |row| TrustCommerce.symbolize_hash(Hash[ row.zip(keys) ]) }
+      keys = csv.shift
+      csv.map { |row| TrustCommerce.symbolize_hash(Hash[ keys.zip(row) ]) }
     end
 end

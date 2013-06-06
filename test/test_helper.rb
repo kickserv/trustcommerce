@@ -42,6 +42,32 @@ def create_subscription!(name)
   response[:billingid]
 end
 
+def create_test_transaction!(billing_id)
+  puts 'Posting test transaction...'
+
+  charge_response = TrustCommerce::Subscription.charge(
+    :billingid  => billing_id,
+    :amount     => 1995,
+    :demo       => 'y'
+  )
+
+  # query for charges
+  options = { :querytype => 'summary', :billingid => billing_id }
+
+  while (query_response = TrustCommerce::Subscription.query(options))
+    if query_response.body =~ /error/i
+      fail(query_response.body)
+      break
+    elsif query_response.body.split("\n").size < 2
+      puts 'Transaction has not yet showed up... will try again in 15 seconds.'
+      sleep(15)
+    else
+      puts 'Transaction found.'
+      break
+    end
+  end
+end
+
 # --- [ TrustCommerce test data ] ---
 # reference: https://vault.trustcommerce.com/downloads/TCDevGuide.html#testdata
 CARDS = {

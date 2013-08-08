@@ -157,7 +157,7 @@ class TrustCommerceSubscriptionTest < Test::Unit::TestCase
     assert_equal "0", TrustCommerce::Subscription.report(billing_id)[:bank]
   end
 
-def test_subscription_summary
+  def test_subscription_summary
     # puts "\n"
     # puts "---------------------------------------------------------------------------"
     # puts "IMPORTANT: This query test will likely take between 1 and 2 minutes!"
@@ -169,6 +169,26 @@ def test_subscription_summary
     create_test_transaction!(billing_id)
 
     assert_equal "1995", TrustCommerce::Subscription.summary(billing_id).first[:sum]
+  end
+
+  def test_subscription_transactions
+    # puts "\n"
+    # puts "---------------------------------------------------------------------------"
+    # puts "IMPORTANT: This query test will likely take between 1 and 2 minutes!"
+    # puts "Make sure TC_VAULT_PASSWORD is set if it differs from your TCLink password."
+    # puts "---------------------------------------------------------------------------"
+
+    billing_id = create_subscription!('query() test')
+
+    create_test_transaction!(billing_id)
+    create_test_transaction!(billing_id, :credit, 999)
+
+    summary = TrustCommerce::Subscription.summary(billing_id)
+    puts summary.inspect
+
+    assert_equal "1995", summary.first[:sum]
+    assert_equal "1995", summary.last[:sum]
+
   end
 
   # test private helpers

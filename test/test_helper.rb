@@ -31,23 +31,23 @@ def create_subscription!(name)
     :exp      => CARDS[:visa][:exp],
     :address1 => CARDS[:visa][:address],
     :zip      => CARDS[:visa][:zip],
-    :avs      => 'y',      
+    :avs      => 'y',
     :name     => name,
   	:amount   => 1200,
   	:cycle    => '1m',
     :demo     => 'y'
   )
-  assert_equal 'approved', response[:status]    
+  assert_equal 'approved', response[:status]
   assert response.keys.include?(:billingid)
   response[:billingid]
 end
 
-def create_test_transaction!(billing_id)
+def create_test_transaction!(billing_id, type = :charge, amount = 1995)
   puts 'Posting test transaction...'
 
-  charge_response = TrustCommerce::Subscription.charge(
+  charge_response = TrustCommerce::Subscription.send(type,
     :billingid  => billing_id,
-    :amount     => 1995,
+    :amount     => amount,
     :demo       => 'y'
   )
 

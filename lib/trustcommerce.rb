@@ -221,7 +221,7 @@ class TrustCommerce
     def self.send_request(options)
       options[:custid]   = self.custid
       options[:password] = self.password
-      options.update(:demo => 'y') if ENV['RAILS_ENV'] != 'production'
+      options.update(:demo => 'y') unless %w{ beta production }.include?(ENV['RAILS_ENV'])
       parameters = stringify_hash(options)
       if tclink? # use TCLink extension if installed
         return Result.new(symbolize_hash(TCLink.send(parameters)))
